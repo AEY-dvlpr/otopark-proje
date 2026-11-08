@@ -1,0 +1,311 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ANKA Akıllı Otopark</title>
+
+<style>
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f1f5f9;
+  margin: 0;
+  padding: 25px 15px;
+  text-align: center;
+  color: #1e293b;
+}
+
+h1 {
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #64748b;
+  margin-bottom: 25px;
+}
+
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  background: white;
+  padding: 15px 25px;
+  border-radius: 12px;
+  min-width: 130px;
+  box-shadow: 0 3px 10px #00000010;
+}
+
+.stat strong {
+  display: block;
+  font-size: 26px;
+  margin-top: 5px;
+}
+
+.otopark {
+  display: flex;
+  justify-content: space-around;
+  align-items: stretch;
+  max-width: 420px;
+  margin: auto;
+  padding: 20px;
+  background: white;
+  border: 3px solid #334155;
+  border-radius: 15px;
+  gap: 12px;
+}
+
+.sutun {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.yol {
+  flex: 1;
+  min-width: 35px;
+  background: #e2e8f0;
+  border-left: 2px dashed #94a3b8;
+  border-right: 2px dashed #94a3b8;
+}
+
+.park {
+  width: 105px;
+  height: 100px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.park span {
+  font-size: 25px;
+}
+
+.park small {
+  margin-top: 5px;
+}
+
+.bos {
+  background: #16a34a;
+}
+
+.dolu {
+  background: #dc2626;
+}
+
+.baglanti {
+  margin-top: 25px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.footer {
+  margin-top: 35px;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+@media(max-width: 380px) {
+  .park {
+    width: 85px;
+  }
+
+  .otopark {
+    padding: 12px;
+  }
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>ANKA Akıllı Otopark</h1>
+
+<p class="subtitle">
+  Canlı Otopark Doluluk Haritası
+</p>
+
+<div class="stats">
+
+  <div class="stat">
+    BOŞ YER
+    <strong id="bosSayisi" style="color:#16a34a">-</strong>
+  </div>
+
+  <div class="stat">
+    DOLU YER
+    <strong id="doluSayisi" style="color:#dc2626">-</strong>
+  </div>
+
+</div>
+
+<div class="otopark">
+
+  <div class="sutun">
+
+    <div id="p1" class="park bos">
+      <span>P1</span>
+      <small>Bekleniyor</small>
+    </div>
+
+    <div id="p2" class="park bos">
+      <span>P2</span>
+      <small>Bekleniyor</small>
+    </div>
+
+  </div>
+
+  <div class="yol"></div>
+
+  <div class="sutun">
+
+    <div id="p3" class="park bos">
+      <span>P3</span>
+      <small>Bekleniyor</small>
+    </div>
+
+    <div id="p4" class="park bos">
+      <span>P4</span>
+      <small>Bekleniyor</small>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="baglanti" id="baglanti">
+  Firebase bağlantısı kuruluyor...
+</div>
+
+<div class="footer">
+  ANKA Grup | Akıllı Otopark Projesi
+</div>
+
+
+<!-- FIREBASE -->
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+
+// FIREBASE AYARLARI
+
+const firebaseConfig = {
+
+  databaseURL: "BURAYA-VERITABANI-URL-INIZ"
+
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.database();
+
+const otoparkRef = db.ref("otopark");
+
+
+// CANLI VERI OKUMA
+
+otoparkRef.on("value", (snapshot) => {
+
+  const data = snapshot.val();
+
+  if (!data) {
+    document.getElementById("baglanti").innerText =
+      "Henüz veri bulunamadı.";
+    return;
+  }
+
+  let bos = 0;
+  let dolu = 0;
+
+  for (let i = 1; i <= 4; i++) {
+
+    const park = document.getElementById("p" + i);
+
+    const durum = data["park" + i];
+
+    if (durum === true || durum === 1) {
+
+      park.className = "park dolu";
+
+      park.innerHTML =
+        `<span>P${i}</span><small>DOLU</small>`;
+
+      dolu++;
+
+    } else if (durum === false || durum === 0) {
+
+      park.className = "park bos";
+
+      park.innerHTML =
+        `<span>P${i}</span><small>BOŞ</small>`;
+
+      bos++;
+
+    } else {
+
+      park.innerHTML =
+        `<span>P${i}</span><small>Veri yok</small>`;
+
+    }
+
+  }
+
+  document.getElementById("bosSayisi").innerText = bos;
+
+  document.getElementById("doluSayisi").innerText = dolu;
+
+  document.getElementById("baglanti").innerText =
+    "● Canlı bağlantı aktif";
+
+}, (error) => {
+
+  document.getElementById("baglanti").innerText =
+    "Firebase bağlantı hatası: " + error.message;
+
+});
+
+
+// BAGLANTI KONTROLU
+
+db.ref(".info/connected").on("value", (snapshot) => {
+
+  if (snapshot.val() === true) {
+
+    document.getElementById("baglanti").innerText =
+      "● Firebase bağlantısı aktif";
+
+  } else {
+
+    document.getElementById("baglanti").innerText =
+      "● Bağlantı bekleniyor...";
+
+  }
+
+});
+
+</script>
+
+</body>
+</html>
